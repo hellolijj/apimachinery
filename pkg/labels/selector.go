@@ -143,6 +143,20 @@ func NewRequirement(key string, op selection.Operator, vals []string) (*Requirem
 	if err := validateLabelKey(key); err != nil {
 		return nil, err
 	}
+	for i := range vals {
+		if err := validateLabelValue(key, vals[i]); err != nil {
+			return nil, err
+		}
+	}
+
+	return NewValidatedRequirement(key, op, vals)
+}
+
+// NewValidatedRequirement is the constructor for a Requirement, but it doesn't implement params validation
+func NewValidatedRequirement(key string, op selection.Operator, vals []string) (*Requirement, error) {
+	if key == "" {
+		return nil, fmt.Errorf("key can't be empty")
+	}
 	switch op {
 	case selection.In, selection.NotIn:
 		if len(vals) == 0 {
@@ -169,11 +183,6 @@ func NewRequirement(key string, op selection.Operator, vals []string) (*Requirem
 		return nil, fmt.Errorf("operator '%v' is not recognized", op)
 	}
 
-	for i := range vals {
-		if err := validateLabelValue(key, vals[i]); err != nil {
-			return nil, err
-		}
-	}
 	return &Requirement{key: key, operator: op, strValues: vals}, nil
 }
 
